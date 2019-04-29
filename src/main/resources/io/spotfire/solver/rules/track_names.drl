@@ -1,0 +1,87 @@
+
+import io.spotfire.solver.domain.*;
+import io.spotfire.solver.domain.PlaylistTrack;
+import org.optaplanner.core.api.score.buildin.bendablebigdecimal.BendableBigDecimalScoreHolder
+import java.math.BigDecimal;
+
+global BendableBigDecimalScoreHolder scoreHolder;
+
+//rule "All tracks should be assigned in playlist"
+//    when
+//      $t: Track()
+//      not PlaylistTrack(track == $t)
+//     then
+//      scoreHolder.addHardConstraintMatch(kcontext, 0, -1);
+//end
+//
+
+//rule "Set previous position"
+//    when
+//        $rpt: RestPlaylistTrack(
+//            previousTrack != null,
+//            previousTrack.position != null,
+//            position != previousTrack.position + 1,
+//            $newPosition: previousTrack.position + 1
+//        )
+//    then
+//        $rpt.setPosition($newPosition);
+//        update($rpt)
+//end
+
+rule "Key distance should be kept to a minimum"
+    when
+       RestPlaylistTrack(
+           keyDistance != null,
+           keyDistance > 0,
+           $kd: keyDistance
+       )
+    then
+        scoreHolder.addSoftConstraintMatch(kcontext, 0, new BigDecimal(-$kd*$kd));
+end
+
+rule "Key changes should only occur after same-key transitions"
+    when
+        $pt0: RestPlaylistTrack(
+            keyDistance != null,
+            keyDistance > 0,
+            previousTrack != null,
+            $previousDistance: keyDistance
+        )
+        RestPlaylistTrack(
+            keyDistance != null,
+            keyDistance > 0,
+            previousTrack == $pt0,
+            $currentDistance: keyDistance
+        )
+    then
+        scoreHolder.addSoftConstraintMatch(
+            kcontext,
+            1,
+            new BigDecimal(
+                -$previousDistance
+            )
+        );
+end
+
+rule "All next tracks should have previous tracks"
+    when
+        RestPlaylistTrack(previousTrack == null)
+    then
+        scoreHolder.addHardConstraintMatch(kcontext, 0, new BigDecimal(-1));
+end
+
+rule "Should play each song only once"
+    when
+        RestPlaylistTrack($t: track, previousTrack != null, $p: previousTrack)
+        RestPlaylistTrack(track != $t, previousTrack == $p)
+    then
+        scoreHolder.addHardConstraintMatch(kcontext, 0, new BigDecimal(-1));
+end
+
+//rule "Should alphabetically sort"
+//    when
+//        PlaylistTrack(track != null, $prevTrackName: track.name)
+//        RestPlaylistTrack(track != null, track.name.compareTo($prevTrackName) > 0)
+//    then
+//        scoreHolder.addHardConstraintMatch(kcontext, 0, -1);
+//end

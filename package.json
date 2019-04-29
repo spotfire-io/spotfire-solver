@@ -1,0 +1,11 @@
+{
+  "dependencies": {
+    "serverless": "^1.41.1"
+  },
+  "devDependencies": {
+    "apollo-client": "^2.5.1",
+    "asciicast2gif": "^0.2.1",
+    "gifsicle": "^4.0.1",
+    "serverless-domain-manager": "^3.2.1"
+  }
+}

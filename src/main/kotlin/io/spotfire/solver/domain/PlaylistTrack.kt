@@ -1,0 +1,8 @@
+package io.spotfire.solver.domain
+import com.squareup.moshi.Json
+
+interface PlaylistTrack {
+    @Json(name = "track")
+    var track: Track?
+}
+

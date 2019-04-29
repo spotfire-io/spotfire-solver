@@ -1,0 +1,42 @@
+provider:
+  name: aws
+  runtime: java8
+  stage: dev
+  timeout: 900
+  memorySize: 3008
+  tracing:
+    lambda: true
+
+service: aws-kotlin-jvm-gradle
+
+plugins:
+  - serverless-domain-manager
+
+custom:
+  customDomain:
+    domainName: solver.spotfire.io
+    basePath: ''
+    stage: ${self:provider.stage}
+    createRoute53Record: true
+
+package:
+  artifact: build/libs/spotfire-solver-${opt:package_version, "1.0.0"}-all.jar
+
+functions:
+  solver:
+    handler: io.spotfire.solver.lambda.SolverHandler
+    events:
+      - http:
+          path: solve
+          method: post
+
+S3Extracts:
+  Type: AWS::S3::Bucket
+  Properties:
+    BucketName: spotfire-extracts
+
+Resources:
+  Outputs:
+    S3ExtractsBucketName:
+      Value:
+        Ref: S3Extracts
