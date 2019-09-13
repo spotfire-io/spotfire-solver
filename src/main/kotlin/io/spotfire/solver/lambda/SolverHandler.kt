@@ -72,42 +72,45 @@ class SolverHandler : RequestHandler<Map<String, Any>, Map<String, Any>> {
   override fun handleRequest(input: Map<String, Any>, context: Context): Map<String, Any> {
     val jobMap = input.get("job") as HashMap<String, String>
     logger.info("received input for request foo $input")
-    val jobId = jobMap["id"]!!
-    val extractPath = jobMap["extractPath"]!!
-    val accessToken = input["accessToken"] as String?
-    val graphqlEndpointURL = input["graphqlEndpointURL"] as String?
-    val job = OptimizationJob(id = jobId, extractPath = extractPath)
-    job.extractPath?.let { extractPath ->
-      val extractDir = downloadAndExtractFile(extractPath)
-      logger.info("Building problem from extract folder")
-      val builder = ProblemBuilder(extractDir.absolutePath)
-      val problem = builder.build()
+    jobMap["id"]?.let { jobId ->
+      jobMap["extractPath"]?.let { extractPath ->
+        val accessToken = input["accessToken"] as String?
+        val graphqlEndpointURL = input["graphqlEndpointURL"] as String?
+        val job = OptimizationJob(id = jobId, extractPath = extractPath)
 
-      logger.info("Starting solver")
-      val solver = PlaylistSolverFactory().getSolver(problem)
-      if(graphqlEndpointURL != null && accessToken != null) {
-        val listener = UpdateJobSolverEventListener(solver, job, graphqlEndpointURL, accessToken)
-        solver.addEventListener(listener)
-        if (solver is AbstractSolver) {
-          solver.addPhaseLifecycleListener(listener)
+        val extractDir = downloadAndExtractFile(extractPath)
+        logger.info("Building problem from extract folder")
+        val builder = ProblemBuilder(extractDir.absolutePath)
+        val problem = builder.build()
+
+        logger.info("Starting solver")
+        val solver = PlaylistSolverFactory().getSolver(problem)
+        if(graphqlEndpointURL != null && accessToken != null) {
+          val listener = UpdateJobSolverEventListener(solver, job, graphqlEndpointURL, accessToken)
+          solver.addEventListener(listener)
+          if (solver is AbstractSolver) {
+            solver.addPhaseLifecycleListener(listener)
+          }
+        } else {
+          logger.warn("Not adding update listener bc endpoint or access token not provided in payload")
         }
-      } else {
-        logger.warn("Not adding update listener bc endpoint or access token not provided in payload")
+
+
+        val solution = solver.solve(problem)
+
+        logger.info("Finished solving in ${solver.timeMillisSpent} with best score of ${solver.bestScore.toShortString()}")
+
+        val status = SolverStatus.fromSolution(solver, solution)
+
+        return mapOf(
+          "statusCode" to 200,
+          "body" to solverStatusAdapter.toJson(status)
+        )
+      } ?: run {
+        throw Exception("Extract path not provided for job input")
       }
-
-
-      val solution = solver.solve(problem)
-
-      logger.info("Finished solving in ${solver.timeMillisSpent} with best score of ${solver.bestScore.toShortString()}")
-
-      val status = SolverStatus.fromSolution(solver, solution)
-
-      return mapOf(
-        "statusCode" to 200,
-        "body" to solverStatusAdapter.toJson(status)
-      )
     } ?: run {
-      throw Exception("Extract path not provided for job input")
+      throw Exception("Job ID not provided for job input")
     }
   }
 }
