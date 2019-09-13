@@ -12,20 +12,28 @@ import org.optaplanner.core.impl.phase.scope.AbstractStepScope
 import org.optaplanner.core.impl.solver.scope.DefaultSolverScope
 import io.github.cdimascio.dotenv.dotenv
 import io.spotfire.solver.domain.OptimizationJob
+import io.spotfire.solver.domain.PlaylistSnapshot
 import io.spotfire.solver.graphql.GraphQLRequest
+import io.spotfire.solver.lambda.SolverHandler
+import okhttp3.MediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 class UpdateJobSolverEventListener(
   val solver: Solver<PlaylistSolution>,
-  val optimizationJob: OptimizationJob
+  val optimizationJob: OptimizationJob,
+  val endpoint: String,
+  val accessToken: String
 ) : SolverEventListener<PlaylistSolution>, PhaseLifecycleListener<PlaylistSolution> {
   companion object {
     // val dotenv = dotenv()
     val httpClient = OkHttpClient.Builder().build()
     val moshi: Moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
     val gqlRequestAdapter = moshi.adapter(GraphQLRequest::class.java)
+    val logger: Logger = LoggerFactory.getLogger(SolverEventListener::class.java)
   }
 
   override fun phaseStarted(phaseScope: AbstractPhaseScope<PlaylistSolution>?) {
@@ -40,8 +48,11 @@ class UpdateJobSolverEventListener(
     // TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
   }
 
-  override fun solvingEnded(solverScope: DefaultSolverScope<PlaylistSolution>?) {
-    // TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+  override fun solvingEnded(solverScope: DefaultSolverScope<PlaylistSolution>) {
+    val solution = solverScope.bestSolution
+    val status = SolverStatus.fromSolution(solver, solution)
+    sendStatus(status, solution)
+    completeJob(solution)
   }
 
   override fun phaseEnded(phaseScope: AbstractPhaseScope<PlaylistSolution>?) {
@@ -54,14 +65,40 @@ class UpdateJobSolverEventListener(
 
   override fun bestSolutionChanged(event: BestSolutionChangedEvent<PlaylistSolution>) {
     val status = SolverStatus.fromSolution(solver, event.newBestSolution)
+    sendStatus(status, event.newBestSolution)
+  }
+
+  fun completeJob(solution: PlaylistSolution) {
+    val trackIds = mutableListOf<String?>(solution.firstPlaylistTrack!!.trackId!!)
+    val restTracks = solution.restPlaylistTrackRange!!
+    while(!trackIds.contains(null)) {
+      val lastId = trackIds.last()
+      val next = restTracks.find { t -> t.previousTrack?.track?.trackId == lastId}
+      trackIds.add(next?.trackId)
+    }
+
+    val gqlRequest = GraphQLRequest(
+      """
+        mutation {
+          completePlaylistOptimization(
+            jobId: "${optimizationJob.id}",
+            trackIds: ["${trackIds.filterNotNull().joinToString("""","""")}"]
+          ) {
+            id
+          }
+        }
+      """.trimIndent()
+    )
+
+    executeGqlRequest(gqlRequest)
   }
 
   fun sendStatus(status: SolverStatus, solution: PlaylistSolution) {
     val constraintViolationJsons = status.constraintViolations.map { cv ->
-      """"{
+      """{
         constraint_name: "${cv.constraintName}",
         violation_count: ${cv.violationCount},
-        score_impact: ${cv.scoreImpact}
+        score_impact: "${cv.scoreImpact}"
       }"""
     }
 
@@ -86,26 +123,24 @@ class UpdateJobSolverEventListener(
       """.trimIndent()
     )
 
+    executeGqlRequest(gqlRequest)
+  }
+
+  private fun executeGqlRequest(gqlRequest: GraphQLRequest) {
     val body = RequestBody.create(
-      okhttp3.MediaType.get("application/json"),
+      MediaType.get("application/json"),
       gqlRequestAdapter.toJson(gqlRequest)
     )
 
-    val req = Request.Builder().post(body)
+    val req = Request.Builder()
+      .url(endpoint)
+      .header("Authorization", "Bearer $accessToken")
+      .post(body)
+      .build()
 
-
+    val resp = httpClient.newCall(req).execute()
+    if (!resp.isSuccessful) {
+      logger.error("Received error: ${resp.code()}")
+    }
   }
-
-  // fun ReceiveChannel<SolverStatus>.throttle(
-  //   wait: Long = 200,
-  //   context: CoroutineContext
-  // ): ReceiveChannel<SolverStatus> = produce<SolverStatus> {
-  //   var nextTime = 0L
-  //   consumeEach {
-  //     val curTime = System.currentTimeMillis()
-  //     if (curTime >= nextTime) {
-  //       nextTime = curTime + wait
-  //       send(it)
-  //     }
-  //   }
 }

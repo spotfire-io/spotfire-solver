@@ -36,6 +36,6 @@ data class PlaylistSolution (
   @ProblemFactCollectionProperty
   val keys: List<Key>? = null,
 
-  @PlanningScore(bendableHardLevelsSize = 1, bendableSoftLevelsSize = 2)
+  @PlanningScore(bendableHardLevelsSize = 1, bendableSoftLevelsSize = 3)
   var score: BendableBigDecimalScore? = null
 )

@@ -6,27 +6,33 @@ import java.math.BigDecimal;
 
 global BendableBigDecimalScoreHolder scoreHolder;
 
-//rule "All tracks should be assigned in playlist"
-//    when
-//      $t: Track()
-//      not PlaylistTrack(track == $t)
-//     then
-//      scoreHolder.addHardConstraintMatch(kcontext, 0, -1);
-//end
-//
 
-//rule "Set previous position"
-//    when
-//        $rpt: RestPlaylistTrack(
-//            previousTrack != null,
-//            previousTrack.position != null,
-//            position != previousTrack.position + 1,
-//            $newPosition: previousTrack.position + 1
-//        )
-//    then
-//        $rpt.setPosition($newPosition);
-//        update($rpt)
-//end
+rule "Should avoid playing artist back-to-back"
+    when
+        $a: Artist()
+        RestPlaylistTrack(
+            track.artists contains $a,
+            previousTrack != null,
+            previousTrack.track != null,
+            previousTrack.track.artists contains $a
+        )
+    then
+        scoreHolder.addSoftConstraintMatch(kcontext, 1, new BigDecimal(-4));
+end
+
+rule "Should avoid playing recent artist"
+    when
+        $a: Artist()
+        $track: RestPlaylistTrack(track.artists contains $a)
+        $previous: RestPlaylistTrack(
+            previousTrack == $track,
+            previousTrack != null,
+            previousTrack.track != null,
+            previousTrack.track.artists contains $a
+        )
+    then
+        scoreHolder.addSoftConstraintMatch(kcontext, 1, new BigDecimal(-1));
+end
 
 rule "Key distance should be kept to a minimum"
     when

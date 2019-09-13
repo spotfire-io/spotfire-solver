@@ -23,6 +23,7 @@ class SolverHandler : RequestHandler<Map<String, Any>, Map<String, Any>> {
   companion object {
     val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
     val jobAdapter = moshi.adapter(OptimizationJob::class.java)
+    val payloadAdapter = moshi.adapter(SolverHandlerPayload::class.java)
     val solverStatusAdapter = moshi.adapter(SolverStatus::class.java)
     val httpClient = OkHttpClient()
     val uaLogger = ConsoleLoggerManager("info")
@@ -44,6 +45,7 @@ class SolverHandler : RequestHandler<Map<String, Any>, Map<String, Any>> {
   }
 
   private fun downloadAndExtractFile(path: String): File {
+    logger.info("Extracting file from ${path}")
     getExtractHashFromPath(path)!!.let { extractHash ->
       val extractDir = File("/tmp/spotfire-extracts/$extractHash")
       if (!extractDir.exists()) {
@@ -68,9 +70,14 @@ class SolverHandler : RequestHandler<Map<String, Any>, Map<String, Any>> {
   }
 
   override fun handleRequest(input: Map<String, Any>, context: Context): Map<String, Any> {
-    logger.info("received input: ${input.keys}")
-    val job = jobAdapter.fromJson(input["body"] as String)
-    job?.extractPath?.let { extractPath ->
+    val jobMap = input.get("job") as HashMap<String, String>
+    logger.info("received input for request foo $input")
+    val jobId = jobMap["id"]!!
+    val extractPath = jobMap["extractPath"]!!
+    val accessToken = input["accessToken"] as String?
+    val graphqlEndpointURL = input["graphqlEndpointURL"] as String?
+    val job = OptimizationJob(id = jobId, extractPath = extractPath)
+    job.extractPath?.let { extractPath ->
       val extractDir = downloadAndExtractFile(extractPath)
       logger.info("Building problem from extract folder")
       val builder = ProblemBuilder(extractDir.absolutePath)
@@ -78,11 +85,16 @@ class SolverHandler : RequestHandler<Map<String, Any>, Map<String, Any>> {
 
       logger.info("Starting solver")
       val solver = PlaylistSolverFactory().getSolver(problem)
-      val listener = UpdateJobSolverEventListener(solver, job)
-      solver.addEventListener(listener)
-      if (solver is AbstractSolver) {
-        solver.addPhaseLifecycleListener(listener)
+      if(graphqlEndpointURL != null && accessToken != null) {
+        val listener = UpdateJobSolverEventListener(solver, job, graphqlEndpointURL, accessToken)
+        solver.addEventListener(listener)
+        if (solver is AbstractSolver) {
+          solver.addPhaseLifecycleListener(listener)
+        }
+      } else {
+        logger.warn("Not adding update listener bc endpoint or access token not provided in payload")
       }
+
 
       val solution = solver.solve(problem)
 

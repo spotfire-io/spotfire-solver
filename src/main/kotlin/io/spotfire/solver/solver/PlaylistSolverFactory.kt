@@ -15,12 +15,13 @@ import org.optaplanner.core.config.localsearch.decider.acceptor.AcceptorConfig
 import org.optaplanner.core.config.localsearch.decider.forager.LocalSearchForagerConfig
 import org.optaplanner.core.config.score.director.ScoreDirectorFactoryConfig
 import org.optaplanner.core.config.score.trend.InitializingScoreTrendLevel
+import org.optaplanner.core.config.solver.EnvironmentMode
 import org.optaplanner.core.config.solver.termination.TerminationConfig
 
 class PlaylistSolverFactory{
   private val drlResourcePathRoot = "io/spotfire/solver/rules"
   private val drlFilenames = listOf(
-    "track_names.drl"
+    "rules.drl"
   )
   private val drlResourcePaths = drlFilenames.map { f -> "$drlResourcePathRoot/$f" }.toTypedArray()
 
@@ -42,7 +43,7 @@ class PlaylistSolverFactory{
         // .withSelectionOrder(SelectionOrder.PROBABILISTIC)
       )
       .withAcceptorConfig(AcceptorConfig()
-        .withSimulatedAnnealingStartingTemperature("[0]hard/[8/8]soft")
+        .withSimulatedAnnealingStartingTemperature("[0]hard/[8/8/8]soft")
         // .withLateAcceptanceSize(400)
         .withEntityTabuRatio(0.05)
         // .withValueTabuRatio(0.05)
@@ -62,7 +63,7 @@ class PlaylistSolverFactory{
     config
       .withMoveThreadCount("Math.max(availableProcessorCount - 2, 2)")
       .withSolutionClass(PlaylistSolution::class.java)
-      // .withEnvironmentMode(EnvironmentMode.FULL_ASSERT)
+       .withEnvironmentMode(EnvironmentMode.FULL_ASSERT)
       .withEntityClasses(RestPlaylistTrack::class.java)
       .withScoreDirectorFactory(ScoreDirectorFactoryConfig()
         .withScoreDrls(*drlResourcePaths)
