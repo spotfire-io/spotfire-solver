@@ -21,7 +21,7 @@ data class SolverStatus(
       scoreDirector.workingSolution = solution
       solver.bestScore
       return SolverStatus(
-        bestScore = solver.bestScore.toShortString(),
+        bestScore = solver.bestScore.toString(),
         timeMillisSpent = solver.timeMillisSpent,
         constraintViolations = scoreDirector
           .constraintMatchTotals
