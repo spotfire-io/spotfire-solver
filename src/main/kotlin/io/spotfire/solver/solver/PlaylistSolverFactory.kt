@@ -73,7 +73,7 @@ class PlaylistSolverFactory{
         getLocalSearchPhaseConfig(problem)
       )
       .withTerminationConfig(TerminationConfig()
-        .withMinutesSpentLimit(10)
+        .withSecondsSpentLimit(850)
         .withUnimprovedMinutesSpentLimit(1)
       )
 
