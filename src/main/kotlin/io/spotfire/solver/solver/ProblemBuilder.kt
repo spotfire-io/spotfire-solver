@@ -14,12 +14,12 @@ import java.io.File
 import kotlin.streams.toList
 
 class ProblemBuilder(
-  val extractDirPath: String,
+  private val extractDirPath: String,
   val readFromClasspath: Boolean = false
 ) {
-  val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
+  val moshi: Moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
 
-  fun <T>getValuesFromFile(filename: String, clazz: Class<T>): List<T> {
+  private fun <T>getValuesFromFile(filename: String, clazz: Class<T>): List<T> {
     val adapter = moshi.adapter<T>(clazz)
     val path = "$extractDirPath/$filename"
     if(readFromClasspath) {
@@ -36,26 +36,31 @@ class ProblemBuilder(
   }
 
   val artists = getValuesFromFile("artists.jsonl", Artist::class.java)
-  private val artistLookup = artists.associate { a -> a.artistId to a }
+  private val artistLookup = artists.associateBy { a -> a.artistId }
 
   private val albums = getValuesFromFile("albums.jsonl", Album::class.java)
     .map { album ->
-      album.artists = album.artists?.map { artist -> artistLookup[artist.artistId]!! }
+      album.artists = album.artists?.map { artist -> artistLookup[artist.artistId] ?:
+        error("Could not find Artist ${artist.artistId}") }
       album
     }
-  private val albumLookup = albums.associate { a -> a.albumId to a }
+  private val albumLookup = albums.associateBy { a -> a.albumId }
 
   private val keys = getValuesFromFile("keys.jsonl", Key::class.java)
-  private val keyLookup = keys.associate { k -> k.label to k }
+  private val keyLookup = keys.associateBy { k -> k.label }
 
   private val tracks = getValuesFromFile("playlistTracks.jsonl", OriginalPlaylistTrack::class.java)
-    .filterNot { opt -> opt.track == null }
+    .filter { opt -> opt.track != null }
+    .filter { opt -> opt.track!!.features != null }
     .distinctBy { opt -> opt.track!!.trackId }
     .map { pt ->
       val track = pt.track!!
-      track.features.key = keyLookup[track.features.key.label]!!
-      track.album = albumLookup[track.album.albumId]!!
-      track.artists = track.artists.map { a -> artistLookup[a.artistId]!! }
+      track.features!!.key = keyLookup[track.features.key.label] ?:
+        error("Could not find key ${track.features.key.label} in lookup")
+      track.album = albumLookup[track.album.albumId] ?:
+        error("Could not find album ${track.album.albumId} in lookup")
+      track.artists = track.artists.map { a -> artistLookup[a.artistId] ?:
+        error("Could not find artist ${a.artistId} in lookup ") }
       track
     }
 
@@ -63,7 +68,7 @@ class ProblemBuilder(
     albums.flatMap { a -> a.genres!!.map { g -> g.name } },
     artists.flatMap { a -> a.genres!!.map { g -> g.name } }
   ).flatten().distinct().map { name -> Genre(name) }
-  private val genreLookup = genres.associate { g -> g.name to g }
+  private val genreLookup = genres.associateBy { g -> g.name }
 
   private val lookupGenre = { g: Genre -> genreLookup[g.name] ?: error("Could not find genre ${g.name}") }
 

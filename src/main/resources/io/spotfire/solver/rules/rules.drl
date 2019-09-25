@@ -17,7 +17,7 @@ rule "Should avoid playing artist back-to-back"
             previousTrack.track.artists contains $a
         )
     then
-        scoreHolder.addSoftConstraintMatch(kcontext, 1, new BigDecimal(-4));
+        scoreHolder.addSoftConstraintMatch(kcontext, 2, new BigDecimal(-4));
 end
 
 rule "Should avoid playing recent artist"
@@ -31,7 +31,7 @@ rule "Should avoid playing recent artist"
             previousTrack.track.artists contains $a
         )
     then
-        scoreHolder.addSoftConstraintMatch(kcontext, 1, new BigDecimal(-1));
+        scoreHolder.addSoftConstraintMatch(kcontext, 2, new BigDecimal(-1));
 end
 
 rule "Key distance should be kept to a minimum"
@@ -69,6 +69,24 @@ rule "Key changes should only occur after same-key transitions"
         );
 end
 
+//rule "Should not play the same artist more than once in five songs"
+//    when
+//        $a: Artist()
+//        $pt: PlaylistTrack()
+//
+//end
+
+rule "Should change key at least once every five songs"
+    when
+        $t0: RestPlaylistTrack(keyDistance == 0)
+        $t1: RestPlaylistTrack(keyDistance == 0, previousTrack == $t0)
+        $t2: RestPlaylistTrack(keyDistance == 0, previousTrack == $t1)
+        $t3: RestPlaylistTrack(keyDistance == 0, previousTrack == $t3)
+        $t4: RestPlaylistTrack(keyDistance == 0, previousTrack == $t3)
+     then
+        scoreHolder.addSoftConstraintMatch(kcontext, 0, new BigDecimal(-2));
+end
+
 rule "All next tracks should have previous tracks"
     when
         RestPlaylistTrack(previousTrack == null)
@@ -83,6 +101,8 @@ rule "Should play each song only once"
     then
         scoreHolder.addHardConstraintMatch(kcontext, 0, new BigDecimal(-1));
 end
+
+
 
 //rule "Should alphabetically sort"
 //    when

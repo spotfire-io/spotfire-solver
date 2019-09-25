@@ -12,7 +12,7 @@ data class Track(
     @Json(name = "explicit")
     val explicit: Boolean,
     @Json(name = "features")
-    val features: AudioFeatures,
+    val features: AudioFeatures?,
     @Json(name = "id")
     val id: String,
     @Json(name = "name")
@@ -26,6 +26,6 @@ data class Track(
 ) {
   override fun toString(): String {
     val artistsList = this.artists.map { a -> a.name }.joinToString(" + ")
-    return "$artistsList - $name (${features.key.camelotCode})"
+    return "$artistsList - $name (${features?.key?.camelotCode})"
   }
 }

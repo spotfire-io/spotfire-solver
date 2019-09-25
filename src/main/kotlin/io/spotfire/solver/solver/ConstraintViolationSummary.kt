@@ -16,6 +16,6 @@ data class ConstraintViolationSummary(
   constructor(cmt: ConstraintMatchTotal): this(
     cmt.constraintName,
     cmt.constraintMatchCount,
-    cmt.score.toShortString()
+    cmt.score.toString()
   )
 }
