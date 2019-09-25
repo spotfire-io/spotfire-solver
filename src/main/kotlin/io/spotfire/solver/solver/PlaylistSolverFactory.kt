@@ -63,7 +63,7 @@ class PlaylistSolverFactory{
     config
       .withMoveThreadCount("Math.max(availableProcessorCount - 2, 2)")
       .withSolutionClass(PlaylistSolution::class.java)
-       .withEnvironmentMode(EnvironmentMode.FULL_ASSERT)
+       .withEnvironmentMode(EnvironmentMode.NON_REPRODUCIBLE)
       .withEntityClasses(RestPlaylistTrack::class.java)
       .withScoreDirectorFactory(ScoreDirectorFactoryConfig()
         .withScoreDrls(*drlResourcePaths)
