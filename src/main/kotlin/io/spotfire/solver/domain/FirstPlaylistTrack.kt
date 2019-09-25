@@ -11,6 +11,7 @@ data class FirstPlaylistTrack(
     // override var position: Int? = 1
 ) : PlaylistTrack {
   override fun toString() = "$track"
+  override var position: Int? = 1
 
   @PlanningId
   val trackId = this.track?.trackId

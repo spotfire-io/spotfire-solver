@@ -1,10 +1,20 @@
 package io.spotfire.solver.solver
 
+import io.spotfire.solver.domain.PlaylistTrack
 import io.spotfire.solver.domain.RestPlaylistTrack
 import org.optaplanner.core.impl.domain.variable.listener.VariableListener
 import org.optaplanner.core.impl.score.director.ScoreDirector
 
 class PreviousTrackUpdatedListener : VariableListener<RestPlaylistTrack> {
+
+  override fun beforeVariableChanged(scoreDirector: ScoreDirector<*>, playlistTrack: RestPlaylistTrack) {
+//    setPreviousTrackBeforeChange(playlistTrack)
+  }
+
+  override fun beforeEntityAdded(scoreDirector: ScoreDirector<*>?, playlistTrack: RestPlaylistTrack) {
+//    setPreviousTrackBeforeChange(playlistTrack)
+  }
+
   override fun afterEntityAdded(scoreDirector: ScoreDirector<*>, playlistTrack: RestPlaylistTrack) {
     update(scoreDirector, playlistTrack)
   }
@@ -16,7 +26,20 @@ class PreviousTrackUpdatedListener : VariableListener<RestPlaylistTrack> {
 
   private fun update(scoreDirector: ScoreDirector<*>, playlistTrack: RestPlaylistTrack) {
     updateKeyDistance(scoreDirector, playlistTrack)
+//    updatePosition(scoreDirector, playlistTrack)
     // updateExponentialDecayKeyDistance(scoreDirector, playlistTrack)
+  }
+
+  private fun updatePosition(scoreDirector: ScoreDirector<*>, playlistTrack: RestPlaylistTrack) {
+    val previous = playlistTrack.previousTrack
+    val newPosition = previous?.position?.let { previousPosition ->
+      previousPosition + 1
+    }
+    if(playlistTrack.position != newPosition) {
+      scoreDirector.beforeVariableChanged(playlistTrack, "position")
+      playlistTrack.position = newPosition
+      scoreDirector.afterVariableChanged(playlistTrack, "position")
+    }
   }
 
   private fun updateKeyDistance(scoreDirector: ScoreDirector<*>, playlistTrack: RestPlaylistTrack) {
@@ -41,15 +64,7 @@ class PreviousTrackUpdatedListener : VariableListener<RestPlaylistTrack> {
     // do nothing
   }
 
-  override fun beforeEntityAdded(scoreDirector: ScoreDirector<*>?, playlistTrack: RestPlaylistTrack?) {
-    // do nothing
-  }
-
   override fun afterEntityRemoved(scoreDirector: ScoreDirector<*>?, playlistTrack: RestPlaylistTrack?) {
-    // do nothing
-  }
-
-  override fun beforeVariableChanged(scoreDirector: ScoreDirector<*>?, playlistTrack: RestPlaylistTrack?) {
     // do nothing
   }
 

@@ -21,17 +21,17 @@ data class RestPlaylistTrack(
   )
   var previousTrack: PlaylistTrack? = null,
 
-  // // @InverseRelationShadowVariable(sourceVariableName = "previousTrack")
-  // override var nextTrack: PlaylistTrack? = null,
 
-  // @CustomShadowVariable(
-  //   variableListenerClass = PreviousTrackUpdatedListener::class,
-  //   sources = [
-  //     PlanningVariableReference(variableName = "previousTrack"),
-  //     PlanningVariableReference(variableName = "nextTrack")
-  //   ]
-  // )
-  // override var position: Int? = null,
+
+
+
+   @CustomShadowVariable(
+     variableListenerClass = PreviousTrackUpdatedListener::class,
+     sources = [
+       PlanningVariableReference(variableName = "previousTrack")
+     ]
+   )
+   override var position: Int? = null,
 
   @CustomShadowVariable(
     variableListenerClass = PreviousTrackUpdatedListener::class,

@@ -4,10 +4,9 @@ import com.squareup.moshi.Json
 
 data class OriginalPlaylistTrack(
   @Json(name = "track")
-  override var track: Track?
+  override var track: Track?,
 
-  // @Json(name = "order")
-  // override var position: Int?
+  @Json(name = "order") override var position: Int?
 
   // @Transient
   // override var nextTrack: PlaylistTrack? = null
