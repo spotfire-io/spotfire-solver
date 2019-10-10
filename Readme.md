@@ -1,20 +1,21 @@
-#Spotfire Solver
+# Spotfire Solver
+
 This is the Optaplanner service that applies the algorithm for optimizing a playlist.
 
 
-#Requirements
+## Requirements
 1. ASDF
 2. AWS Account
 3. A Spotify Account
 
 
-#Setup
+## Setup
 * `asdf install` to install the required tools specified in the `.tool-versions` file.
 
-#Deployment
+## Deployment
 * `./gradlew deploy`
 
-#Running Locally
+## Running Locally
 1. Boot up the `spotfire-website` and the `spotfire-api` locally.
 2. Retrieve the `access token` from the running instance of the website, by opening it in your browser, clicking 
 on the arrow on the top right corner and selecting `Copy Access Token`.
