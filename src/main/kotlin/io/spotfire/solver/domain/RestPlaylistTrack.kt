@@ -4,11 +4,7 @@ import com.squareup.moshi.Json
 import io.spotfire.solver.solver.PreviousTrackUpdatedListener
 import org.optaplanner.core.api.domain.entity.PlanningEntity
 import org.optaplanner.core.api.domain.lookup.PlanningId
-import org.optaplanner.core.api.domain.variable.CustomShadowVariable
-import org.optaplanner.core.api.domain.variable.InverseRelationShadowVariable
-import org.optaplanner.core.api.domain.variable.PlanningVariable
-import org.optaplanner.core.api.domain.variable.PlanningVariableGraphType
-import org.optaplanner.core.api.domain.variable.PlanningVariableReference
+import org.optaplanner.core.api.domain.variable.*
 
 @PlanningEntity
 data class RestPlaylistTrack(
@@ -20,18 +16,15 @@ data class RestPlaylistTrack(
     valueRangeProviderRefs = ["firstTrack", "restTracks"]
   )
   var previousTrack: PlaylistTrack? = null,
+  //override var nextTrack: PlaylistTrack? = null,
 
-
-
-
-
-   @CustomShadowVariable(
+  @CustomShadowVariable(
      variableListenerClass = PreviousTrackUpdatedListener::class,
      sources = [
        PlanningVariableReference(variableName = "previousTrack")
      ]
    )
-   override var position: Int? = null,
+  override var position: Int? = null,
 
   @CustomShadowVariable(
     variableListenerClass = PreviousTrackUpdatedListener::class,

@@ -6,7 +6,6 @@ import java.math.BigDecimal;
 
 global BendableBigDecimalScoreHolder scoreHolder;
 
-
 rule "Should avoid playing artist back-to-back"
     when
         $a: Artist()
@@ -103,11 +102,31 @@ rule "Should play each song only once"
 end
 
 
+rule "First playlist track is at position 1"
+    when
+        $fpt: FirstPlaylistTrack()
+        not TrackPosition(
+            track == $fpt
+        )
+    then
+        insert(new TrackPosition($fpt, 1));
+end
 
-//rule "Should alphabetically sort"
-//    when
-//        PlaylistTrack(track != null, $prevTrackName: track.name)
-//        RestPlaylistTrack(track != null, track.name.compareTo($prevTrackName) > 0)
-//    then
-//        scoreHolder.addHardConstraintMatch(kcontext, 0, -1);
-//end
+
+rule "Tracks should have a track position"
+    when
+        $t: RestPlaylistTrack(
+            previousTrack != null,
+            $pt: previousTrack
+        )
+
+        $tp: TrackPosition(
+            track == $pt,
+            $prevPos: position
+        )
+
+    then
+        insertLogical(new TrackPosition($t, $prevPos + 1));
+end
+
+

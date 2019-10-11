@@ -1,2 +1,6 @@
 .serverless
 build
+.gradle
+node_modules
+.idea
+package-lock.json
