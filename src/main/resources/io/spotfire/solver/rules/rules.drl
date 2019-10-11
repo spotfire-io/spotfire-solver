@@ -136,15 +136,18 @@ rule "Track key repeats should be avoided"
             $p: position
         )
 
-        $window: Integer() from accumulate(
+        $totalKeyDistance: Integer(intValue == 0) from accumulate(
                 TrackPosition(
-                    position < $p,
+                    position <= $p,
+                    position > $p - 5,
                     $t: track
                 ),
                 sum($t.getKeyDistance())
         )
+
     then
-        System.out.println($window) ;
+        System.out.println($totalKeyDistance);
+        scoreHolder.addSoftConstraintMatch(kcontext, 0, new BigDecimal(-1));
 
 end
 

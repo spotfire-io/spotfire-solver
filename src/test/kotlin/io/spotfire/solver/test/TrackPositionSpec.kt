@@ -66,4 +66,28 @@ object TrackPositionSpec : Spek({
     assertTrue( trackPositions.size == 12, "There are 12 tracks" )
     assertEquals( trackPositions.map { it.position }.toHashSet(), (1..12).toHashSet(),  "Tracks are numbered 1 to 12")
   }
+
+  describe("Key Distances are calculated") {
+    val kbase = kbuilder.newKieBase()
+    val ksession = kbase.newKieSession()
+    val scoreHolder = BendableBigDecimalScoreHolder(true, 100, 100)
+    ksession.setGlobal("scoreHolder", scoreHolder)
+
+
+    val firstTrack = FirstPlaylistTrack(makeTrack("first", "album1"))
+    ksession.insert(firstTrack)
+
+    var prevTrack: PlaylistTrack = firstTrack
+    for(i in 0..10) {
+      val nextTrack = RestPlaylistTrack(previousTrack = prevTrack, track = makeTrack("track${i}", "album1"), keyDistance = i)
+      ksession.insert(nextTrack)
+      prevTrack = nextTrack
+    }
+
+    ksession.fireAllRules()
+
+    val trackPositions = ksession.getObjects { f -> f is TrackPosition } as Collection<TrackPosition>
+    assertTrue( trackPositions.size == 12, "There are 12 tracks" )
+    assertEquals( trackPositions.map { it.position }.toHashSet(), (1..12).toHashSet(),  "Tracks are numbered 1 to 12")
+  }
 })
