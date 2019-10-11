@@ -3,6 +3,7 @@ import io.spotfire.solver.domain.*;
 import io.spotfire.solver.domain.PlaylistTrack;
 import org.optaplanner.core.api.score.buildin.bendablebigdecimal.BendableBigDecimalScoreHolder
 import java.math.BigDecimal;
+import java.util.List;
 
 global BendableBigDecimalScoreHolder scoreHolder;
 
@@ -129,4 +130,21 @@ rule "Tracks should have a track position"
         insertLogical(new TrackPosition($t, $prevPos + 1));
 end
 
+rule "Track key repeats should be avoided"
+    when
+        $tp: TrackPosition(
+            $p: position
+        )
+
+        $window: Integer() from accumulate(
+                TrackPosition(
+                    position < $p,
+                    $t: track
+                ),
+                sum($t.getKeyDistance())
+        )
+    then
+        System.out.println($window) ;
+
+end
 
