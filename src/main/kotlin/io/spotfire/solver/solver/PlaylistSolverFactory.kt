@@ -56,14 +56,14 @@ class PlaylistSolverFactory{
     return config
   }
 
-  fun getSolver(problem: PlaylistSolution): Solver<PlaylistSolution> {
+  fun getSolver(problem: PlaylistSolution, secondsSpentLimit: Long? = 850, envMode: EnvironmentMode? = EnvironmentMode.NON_REPRODUCIBLE): Solver<PlaylistSolution> {
     val factory = SolverFactory.createEmpty<PlaylistSolution>()
     val config = factory.solverConfig
 
     config
       .withMoveThreadCount("Math.max(availableProcessorCount - 2, 2)")
       .withSolutionClass(PlaylistSolution::class.java)
-       .withEnvironmentMode(EnvironmentMode.NON_REPRODUCIBLE)
+       .withEnvironmentMode(envMode)
       .withEntityClasses(RestPlaylistTrack::class.java)
       .withScoreDirectorFactory(ScoreDirectorFactoryConfig()
         .withScoreDrls(*drlResourcePaths)
@@ -73,7 +73,7 @@ class PlaylistSolverFactory{
         getLocalSearchPhaseConfig(problem)
       )
       .withTerminationConfig(TerminationConfig()
-        .withSecondsSpentLimit(850)
+        .withSecondsSpentLimit(secondsSpentLimit)
         .withUnimprovedMinutesSpentLimit(1)
       )
 

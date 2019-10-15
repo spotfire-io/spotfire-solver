@@ -30,7 +30,7 @@ data class RestPlaylistTrack(
     variableListenerClass = PreviousTrackUpdatedListener::class,
     sources = [PlanningVariableReference(variableName = "previousTrack")]
   )
-  override var keyDistance: Int? = 0,
+  override var keyDistance: Int? = Int.MAX_VALUE,
 
   @CustomShadowVariable(
     variableListenerClass = PreviousTrackUpdatedListener::class,

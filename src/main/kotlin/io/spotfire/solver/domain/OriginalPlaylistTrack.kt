@@ -10,7 +10,7 @@ data class OriginalPlaylistTrack(
   override var position: Int?,
 
   @Transient
-  override var keyDistance: Int? = null
+  override var keyDistance: Int? = Int.MAX_VALUE
 
   // @Transient
   // override var nextTrack: PlaylistTrack? = null

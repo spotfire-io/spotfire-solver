@@ -36,6 +36,16 @@ data class PlaylistSolution (
   @ProblemFactCollectionProperty
   val keys: List<Key>? = null,
 
+  @ProblemFactCollectionProperty
+  val solverOptions: List<SolverOption> = listOf(TrackKeyRepeatSolverOption()),
+
   @PlanningScore(bendableHardLevelsSize = 1, bendableSoftLevelsSize = 3)
   var score: BendableBigDecimalScore? = null
-)
+
+) {
+
+  val orderedTrackList: List<PlaylistTrack>
+    get() {
+      return listOf(this.firstPlaylistTrack).plus(this.restPlaylistTrackRange.orEmpty()).sortedBy { it?.position }.filterNotNull()
+    }
+}

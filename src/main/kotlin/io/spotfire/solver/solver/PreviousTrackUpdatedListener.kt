@@ -43,7 +43,7 @@ class PreviousTrackUpdatedListener : VariableListener<RestPlaylistTrack> {
   }
 
   private fun updateKeyDistance(scoreDirector: ScoreDirector<*>, playlistTrack: RestPlaylistTrack) {
-    var distance: Int? = null
+    var distance: Int = Int.MAX_VALUE
     playlistTrack.track?.features?.key?.let { thisKey ->
       playlistTrack.previousTrack?.track?.features?.key?.let { previousKey ->
         val noteDistance = Math.abs(
@@ -53,6 +53,7 @@ class PreviousTrackUpdatedListener : VariableListener<RestPlaylistTrack> {
         distance = (if (noteDistance < 6) noteDistance else noteDistance - (noteDistance % 6)) + modeDistance
       }
     }
+
     if(playlistTrack.keyDistance != distance) {
       scoreDirector.beforeVariableChanged(playlistTrack, "keyDistance")
       playlistTrack.keyDistance = distance

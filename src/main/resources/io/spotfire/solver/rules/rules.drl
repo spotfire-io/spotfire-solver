@@ -76,16 +76,6 @@ end
 //
 //end
 
-rule "Should change key at least once every five songs"
-    when
-        $t0: RestPlaylistTrack(keyDistance == 0)
-        $t1: RestPlaylistTrack(keyDistance == 0, previousTrack == $t0)
-        $t2: RestPlaylistTrack(keyDistance == 0, previousTrack == $t1)
-        $t3: RestPlaylistTrack(keyDistance == 0, previousTrack == $t3)
-        $t4: RestPlaylistTrack(keyDistance == 0, previousTrack == $t3)
-     then
-        scoreHolder.addSoftConstraintMatch(kcontext, 0, new BigDecimal(-2));
-end
 
 rule "All next tracks should have previous tracks"
     when
@@ -114,7 +104,7 @@ rule "First playlist track is at position 1"
 end
 
 
-rule "Tracks should have a track position"
+rule "Tracks should have an associated track position"
     when
         $t: RestPlaylistTrack(
             previousTrack != null,
@@ -130,24 +120,42 @@ rule "Tracks should have a track position"
         insertLogical(new TrackPosition($t, $prevPos + 1));
 end
 
+rule "Tracks should have a position number"
+    when
+            $t: RestPlaylistTrack(
+                $pos: position
+            )
+
+            TrackPosition(
+                track == $t,
+                position != $pos,
+                $trackPos: position
+            )
+    then
+        modify($t){ setPosition($trackPos) }
+end
+
 rule "Track key repeats should be avoided"
     when
+        TrackKeyRepeatSolverOption(
+            $windowSize: windowSize
+        )
+
         $tp: TrackPosition(
+            position >= $windowSize,
             $p: position
         )
 
         $totalKeyDistance: Integer(intValue == 0) from accumulate(
                 TrackPosition(
                     position <= $p,
-                    position > $p - 5,
+                    position > $p - $windowSize,
                     $t: track
                 ),
                 sum($t.getKeyDistance())
         )
 
     then
-        System.out.println($totalKeyDistance);
-        scoreHolder.addSoftConstraintMatch(kcontext, 0, new BigDecimal(-1));
-
+        scoreHolder.addSoftConstraintMatch(kcontext, 0, new BigDecimal(-$windowSize));
 end
 
