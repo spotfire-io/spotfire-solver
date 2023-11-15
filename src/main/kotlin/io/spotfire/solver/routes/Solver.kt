@@ -6,7 +6,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.spotfire.solver.lambda.SolverHandler
-import io.spotfire.solver.lambda.SolverHandlerPayload
+import io.spotfire.solver.domain.SolverHandlerPayload
 import io.spotfire.solver.solver.PlaylistSolverFactory
 import io.spotfire.solver.solver.ProblemBuilder
 import io.spotfire.solver.solver.SolverStatus
@@ -71,7 +71,6 @@ private fun downloadAndExtractFile(path: String): File {
 fun Route.solverRouting() {
   route("/solver") {
     post {
-
 
       try {
         val payload = call.receive<SolverHandlerPayload>()
