@@ -2,16 +2,14 @@ package io.spotfire.solver.solver
 
 import com.squareup.moshi.Json
 import io.spotfire.solver.domain.PlaylistSolution
+import kotlinx.serialization.Serializable
 import org.optaplanner.core.api.solver.Solver
-
+@Serializable
 data class SolverStatus(
-  @Json(name = "constraint_violations")
   val constraintViolations: List<ConstraintViolationSummary>,
 
-  @Json(name = "best_score")
   val bestScore: String,
 
-  @Json(name = "time_millis_spent")
   val timeMillisSpent: Long
 )
 {
