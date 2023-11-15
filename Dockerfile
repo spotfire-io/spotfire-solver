@@ -14,7 +14,7 @@ RUN GRADLE_OPTS="-XX:MaxMetaspaceSize=4096m -XX:+HeapDumpOnOutOfMemoryError -Xmx
 # https://docs.docker.com/develop/develop-images/multistage-build/#use-multi-stage-builds
 FROM openjdk:11-jdk
 # Copy the jar to the production image from the builder stage.
-COPY --from=builder /home/gradle/build/libs/gradle-1.0.0-SNAPSHOT.jar /spotfire-solver.jar
+COPY --from=builder /home/gradle/build/libs/gradle-all.jar /spotfire-solver.jar
 
 # Run the web service on container startup.
 CMD [ "java", "-jar", "-Djava.security.egd=file:/dev/./urandom", "/spotfire-solver.jar" ]
