@@ -5,8 +5,6 @@ FROM gradle:7.6-jdk11 as builder
 # Copy local code to the container image.
 COPY build.gradle .
 COPY src ./src
-
-RUN java -version && exit 1
 # Build a release artifact.
 RUN GRADLE_OPTS="-XX:MaxMetaspaceSize=4096m -XX:+HeapDumpOnOutOfMemoryError -Xmx512m -Dfile.encoding=UTF-8 -Duser.country=US -Duser.language=en -Duser.variant"  gradle clean build -x test --no-daemon
 
