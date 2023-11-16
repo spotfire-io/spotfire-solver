@@ -7,6 +7,6 @@ import kotlinx.serialization.Serializable
 data class OptimizationJob(
   @SerialName("id")
   val id: String,
-  @SerialName("extract_path")
+  @SerialName("extractPath")
   val extractPath: String
 )
