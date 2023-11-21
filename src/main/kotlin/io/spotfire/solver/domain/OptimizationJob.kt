@@ -1,11 +1,12 @@
 package io.spotfire.solver.domain
 
-import com.squareup.moshi.Json
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class OptimizationJob(
-  @Json(name = "id")
+  @SerialName("id")
   val id: String,
-
-  @Json(name = "extract_path")
+  @SerialName("extractPath")
   val extractPath: String
 )

@@ -1,16 +1,17 @@
 package io.spotfire.solver.solver
 
-import com.squareup.moshi.Json
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import org.optaplanner.core.api.score.constraint.ConstraintMatchTotal
-
+@Serializable
 data class ConstraintViolationSummary(
-  @Json(name = "constraint_name")
+  @SerialName("constraint_name")
   val constraintName: String,
 
-  @Json(name = "violation_count")
+  @SerialName("violation_count")
   val violationCount: Int,
 
-  @Json(name = "score_impact")
+  @SerialName("score_impact")
   val scoreImpact: String
 ) {
   constructor(cmt: ConstraintMatchTotal): this(
